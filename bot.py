@@ -10,12 +10,9 @@ import logging
 from dotenv import load_dotenv
 import requests
 import json
-
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
-
-
 def get_response(messages: list[dict]) -> str:
     response = requests.post(
     url="https://openrouter.ai/api/v1/chat/completions",
@@ -27,16 +24,13 @@ def get_response(messages: list[dict]) -> str:
         "messages": messages
     })
     )
-
     return response.json()['choices'][0]['message']['content']
 router = Router()
-
-messages = {} # 
+messages = {}  
 @router.message()
 async def message_handler(msg: Message) -> None:
     if msg.chat.id not in messages.keys():
         messages[msg.chat.id] = []
-
     messages[msg.chat.id].append({'role': 'user', 'content': msg.text})
     response = get_response(messages[msg.chat.id])
     await msg.answer(response, parse_mode=ParseMode.MARKDOWN)
@@ -46,14 +40,11 @@ async def start(msg: Message) -> None:
 @router.message(Command("help"))
 async def help(msg: Message) -> None:
     await msg.answer("Do you need a help?")
-
 async def main():
     bot = aiogram.Bot(os.environ.get("TOKEN") )
-
     dp = aiogram.Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
